@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Aplicatie Harta</string>
+    <string name="title_activity_maps">Harta</string>
+
+    <string name="display_zoom_buttons">Afiseaza butoanele +/-</string>
+
+    <string-array name="optionsToPaint">
+        <item>Punct</item>
+        <item>Linie</item>
+        <item>Poligon</item>
+    </string-array>
+
+</resources>

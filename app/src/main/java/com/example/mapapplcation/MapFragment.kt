@@ -1,5 +1,7 @@
 package com.example.mapapplcation
 
+import android.graphics.Color
+import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,13 +12,11 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PolygonOptions
-import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.model.*
+import com.google.android.gms.tasks.Task
 
 
-class MapFragment : Fragment(), OnMapReadyCallback {
+class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnPolygonClickListener {
     private lateinit var mMap: GoogleMap
     private var poligonOptions: PolygonOptions = PolygonOptions()
     private var polylineOptions: PolylineOptions = PolylineOptions()
@@ -57,15 +57,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mMap.isMyLocationEnabled = true
         mMap.uiSettings.isMyLocationButtonEnabled = true
         mMap.setOnMapClickListener { currentPoint ->
-
+            var optionsToPaint = resources.getStringArray(R.array.optionsToPaint)
             when (this.optionToPaint) {
-                "Point" -> {
+                optionsToPaint[0] -> {
                     drawPoint(currentPoint)
                 }
-                "Line" -> {
+                optionsToPaint[1] -> {
                     drawLine(currentPoint)
                 }
-                "Polygon" -> {
+                optionsToPaint[2] -> {
                     drawPolygon(currentPoint)
                 }
             }
@@ -77,6 +77,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             addMarker(
                 MarkerOptions()
                     .position(currentPoint)
+                    .draggable(true)
             )
         }
     }
@@ -92,8 +93,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun drawPolygon(currentPoint: LatLng) {
         drawPoint(currentPoint)
-        poligonOptions.add(currentPoint)
+        poligonOptions.add(currentPoint).clickable(true).strokeColor(Color.GREEN)
         if (poligonOptions.points.size == 4) {
+            poligonOptions = poligonOptions.clickable(true)
             mMap.addPolygon(poligonOptions)
             poligonOptions = PolygonOptions()
         }
@@ -105,25 +107,35 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             val locationResult = mapsActivity.getFusedLocation().lastLocation
             locationResult.addOnCompleteListener(mapsActivity) { task ->
                 if (task.isSuccessful) {
-                    val lastLocation = task.result
-                    if (lastLocation != null) {
-                        mMap.moveCamera(
-                            CameraUpdateFactory.newLatLngZoom(
-                                LatLng(
-                                    lastLocation.latitude,
-                                    lastLocation.longitude
-                                ), DEFAULT_ZOOM.toFloat()
-                            )
-                        )
-                    }
+                    centerMyLocationCamera(task)
                 }
 
             }
         }
     }
 
+    private fun centerMyLocationCamera(task: Task<Location>) {
+        val lastLocation = task.result
+        if (lastLocation != null) {
+            mMap.moveCamera(
+                CameraUpdateFactory.newLatLngZoom(
+                    LatLng(
+                        lastLocation.latitude,
+                        lastLocation.longitude
+                    ), DEFAULT_ZOOM.toFloat()
+                )
+            )
+        }
+    }
+
     companion object {
         private const val DEFAULT_ZOOM = 15
+    }
+
+    override fun onPolygonClick(selectedPolygon: Polygon?) {
+        if (selectedPolygon != null) {
+
+        }
     }
 
 }
